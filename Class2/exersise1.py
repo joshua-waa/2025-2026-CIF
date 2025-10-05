@@ -15,4 +15,5 @@ elif score>=80:
 elif score>=60:
     print("Wow he passed!")
 else:
-    print("He failed.")
+    print("He failed")
+
