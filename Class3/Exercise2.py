@@ -1,0 +1,32 @@
+import random
+while True:
+    a=input("What lower bound of your guessing game?")
+    try:
+        a = int(a)
+        break
+    except ValueError:
+        print("Put a integer")
+while True:
+    b = input("What upper bound of your guessing game?")
+    try:
+        b = int(b)
+        break
+    except ValueError:
+        print("Put a integer")
+n=random.randint(a,b)
+y="y"
+while True:
+    while y == "y":
+        g=input(f"Guess a number from { a } - { b } .")
+        try:
+            g=int(g)
+            break
+        except ValueError:
+            print("Put a integer")
+
+    if g==n:
+        print("You got it correct!!")
+        break
+    else:
+        print("You got it wrong.")
+        y=input("Do yo you want to try again(y/n)?")
