@@ -6,7 +6,7 @@ flowchart TD
   C-->D[Set lives = 3]
   D-->E[Guess a number]
   E-->F[Correct!]
-  E-->G[Wrong!]
+  E-->G[Wrong!    lives-=1]
   G-->H[Do you want to play again?]
   H-->I[Yes]
   I-->E
