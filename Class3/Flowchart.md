@@ -6,4 +6,7 @@ flowchart TD
   D --> E[Guess a number]
   E --> F[Correct!]
   E --> G[Wrong!]
+  G --> H[Do you want to play again?]
+  H --> I[Yes]
+  H --> J[No]
 ```
