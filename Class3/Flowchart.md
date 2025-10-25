@@ -1,5 +1,6 @@
 ```mermaid
 flowchart TD
+  St[Start]-->A
   A[Get upper bound] --> B[Get lower bound]
   B --> C[Make random number]
   C --> D[Set lives = 3]
