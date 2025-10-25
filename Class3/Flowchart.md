@@ -2,7 +2,7 @@
 flowchart TD
   St[Start]-->A
   A[Get upper bound]-->B[Get lower bound]
-  B-->C[Random.Randint(lower, upper)]
+  B-->C[use Random.Randint]
   C-->D[Set lives = 3]
   D-->E[Guess a number]
   E-->F[Correct!]
