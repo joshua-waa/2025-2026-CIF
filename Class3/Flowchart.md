@@ -1,5 +1,5 @@
 ```mermaid
-flowchart TD
+flowchart LR
   St[Start]-->A
   A[Get upper bound]-->B[Get lower bound]
   B-->C[use Random.Randint]
