@@ -1,7 +1,7 @@
 import random
 q=["What is the initials of the first american president?(Eg: abraham lincon= al)",
    "What year is it?",
-   "Name the most popular ice-cream flavor.",
+   "Name the most popular ice-cream flavour.",
    "What is (9+6)/3?",
    "Name the largest web browser.",
    "What is the value of π (two decimals)?",
