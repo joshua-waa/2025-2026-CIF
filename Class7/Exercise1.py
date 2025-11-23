@@ -30,8 +30,8 @@ for i in range(90):
     forward(3.7)
 turtle.shapesize(1)
 turtle.color("yellow")
-for i in range(10):
-    turtle.pensize(2*i)
+for i in range(1, 11):
+    turtle.shapesize(i)
 
 
 turtle.done()
