@@ -7,7 +7,8 @@ def left(a):
 def right(a):
     turtle.right(a)
 sides=int(input("How many sides?"))
+length=int(input("How long?"))
 for i in range(3):
-    forward(100)
+    forward(length)
     right(180-((sides-2)*180/sides))
 turtle.done()
