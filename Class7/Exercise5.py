@@ -11,3 +11,4 @@ t.shapesize(0.5)
 for i in range(10101010100):
     t.forward(i/2)
     t.right(50)
+turtle.done()
