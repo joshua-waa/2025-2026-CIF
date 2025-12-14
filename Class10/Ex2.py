@@ -20,7 +20,7 @@ while playing:
     if key[pygame.K_RIGHT]:
         x+=4
     screen.fill((0, 0, 0))
-    grect=pygame.Rect(x,y,100,80)
-    pygame.draw.rect(screen,(0,255,0),grect)
+    rect=pygame.Rect(x,y,80,80)
+    pygame.draw.rect(screen,(255,255,255),rect)
     pygame.display.update()
 pygame.quit()
