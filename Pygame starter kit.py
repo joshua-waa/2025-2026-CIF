@@ -3,9 +3,6 @@
 # For moving boxes with controls is red
 # # is text
 # ################################### is pls change
-from ctypes.wintypes import PWORD
-from turtledemo.nim import SCREENWIDTH
-
 import pygame
 
 pygame.init()
