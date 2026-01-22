@@ -3,7 +3,7 @@ import pygame
 import math
 
 #
-#
+#swd
 #
 pygame.init()
 
@@ -14,11 +14,12 @@ screen = pygame.display.set_mode((screenwidth, screenheight))
 bgcolor = (0, 0, 0)
 
 # Jet setup
-width = 12.5
-height = 50
+t_rad = 25
+width = t_rad
+height = t_rad * 3
 turrent_image = pygame.image.load("turrent.png").convert_alpha()
 turrent_image = pygame.transform.scale(turrent_image, (width, height))
-t_rad = 25
+
 x, y = screenwidth/2 - t_rad , screenheight/2 - t_rad
 speed = 2
 
@@ -32,9 +33,10 @@ move_up = move_down = move_left = move_right = False
 bullets = []  # {"x","y","dx","dy"}
 enemys = []
 
-ammo = 5
-max_ammo = 5
+max_ammo = 10
+ammo = max_ammo
 reload_timer = 0
+time_to_reload = 0.4
 ammo_rad = 5
 
 espeed = 1  # how fast enemy moves
@@ -136,7 +138,7 @@ while playing:
 
     #RELOAD
     reload_timer += 1
-    if reload_timer > fps and ammo < max_ammo:
+    if reload_timer > time_to_reload*fps and ammo < max_ammo:
         ammo += 1
         reload_timer = 0
 
@@ -184,8 +186,8 @@ while playing:
 
     for enemy in enemys:
         pygame.draw.circle(screen, (255, 0, 0),(int(enemy["x"]), int(enemy["y"])), e_rad)
-        dx = enemy["x"] - x
-        dy = enemy["y"] - y
+        dx = enemy["x"] - turrent_center_x
+        dy = enemy["y"] - turrent_center_y
         distance = (dx ** 2 + dy ** 2) ** 0.5
 
         if distance <= e_rad + t_rad:
@@ -206,7 +208,7 @@ while playing:
                     enemys.remove(enemy)
 
     ammo_text = pygame.font.SysFont("Comic Sans MS", 30).render(str(ammo), True, (0, 0, 0))
-    screen.blit(ammo_text, (x+t_rad/12.5-5 , y+t_rad/3-2))
+    screen.blit(ammo_text, (x+t_rad/12.5 , y+t_rad/3))
     screen.blit(pygame.font.SysFont("Comic Sans MS", 30).render(str(lives), True, (255, 255, 255)), (50, 50))
 
     pygame.display.update()
