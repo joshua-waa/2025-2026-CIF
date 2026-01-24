@@ -1,4 +1,6 @@
 import random
+from math import floor
+
 import pygame
 import math
 
@@ -11,7 +13,7 @@ pygame.init()
 screenwidth = 800
 screenheight = 600
 screen = pygame.display.set_mode((screenwidth, screenheight))
-bgcolor = (0, 0, 0)
+bg_color = (0, 0, 0)
 
 # Jet setup
 t_rad = 25
@@ -20,7 +22,7 @@ height = t_rad * 3
 turrent_image = pygame.image.load("turrent.png").convert_alpha()
 turrent_image = pygame.transform.scale(turrent_image, (width, height))
 
-x, y = screenwidth/2 - t_rad , screenheight/2 - t_rad
+x, y = screenwidth/2, screenheight/2
 speed = 2
 
 clock = pygame.time.Clock()
@@ -40,11 +42,22 @@ time_to_reload = 0.4
 ammo_rad = 5
 
 espeed = 1  # how fast enemy moves
-espawn = 0
-espawnps = 3 # how many spawn per second
+e_spawn = 0
+e_spawn_ps = 3 # how many spawn per second
 e_rad = 20
+distance = 0
 
 lives = 3
+scene = "main"
+
+#shop
+money = 0
+multi_cost = 100
+multi_bullet = 1
+
+not_enough = False
+
+
 while playing:
     clock.tick(fps)
 
@@ -62,21 +75,23 @@ while playing:
         elif side == 4: ###BOTTOM
             ex = random.randint(0,screenwidth)
             ey = screenheight
-
-
         diff_x = x - ex
         diff_y = y - ey
 
         distance = (diff_x ** 2 + diff_y ** 2) ** 0.5  # Pythagoras
 
-        edx = (diff_x / distance) * speed
-        edy = (diff_y / distance) * speed
-
+        edx = (diff_x / distance) * espeed
+        edy = (diff_y / distance) * espeed
         enemys.append({"x": ex, "y": ey,"edx": edx, "edy": edy ,"t":0 })
+
+    def make_text(tx,ty,color,yap,size):
+        font = pygame.font.SysFont("Comic Sans MS", size)
+        text_surface = font.render(str(yap), True, color)
+        screen.blit(text_surface, (tx, ty))
 
     #EVENTS
     for event in pygame.event.get():
-        if event.type == pygame.QUIT or lives <=0:
+        if event.type == pygame.QUIT:
             playing = False
 
         if event.type == pygame.KEYDOWN:
@@ -111,12 +126,7 @@ while playing:
                 dy = mouse_y - turrent_center_y
                 angle = math.atan2(-dy, dx)
 
-                bullets.append({
-                    "x": turrent_center_x,
-                    "y": turrent_center_y,
-                    "dx": math.cos(angle) * 8,
-                    "dy": -math.sin(angle) * 8
-                })
+                bullets.append({"x": turrent_center_x,"y": turrent_center_y,"dx": math.cos(angle) * 8,"dy": -math.sin(angle) * 8})
 
                 ammo -= 1
                 reload_timer = 0
@@ -131,10 +141,15 @@ while playing:
     y = max(0, min(y, screenheight - height))
 
     #enemy spawn
-    espawn +=1
-    if espawn >= fps / espawnps:
-        make_enemy()
-        espawn = 0
+    if scene == "game":
+        e_spawn +=1
+        if e_spawn >= fps / e_spawn_ps:
+            make_enemy()
+            e_spawn = 0
+
+    if lives <= 0:
+        scene = "main"
+        lives = 3
 
     #RELOAD
     reload_timer += 1
@@ -161,55 +176,133 @@ while playing:
         bullet["y"] += bullet["dy"]
         if (bullet["x"] < 0 or bullet["x"] > screenwidth or bullet["y"] < 0 or bullet["y"] > screenheight):
             bullets.remove(bullet)
+            continue
+
+    #DRAW #################################
+    screen.fill(bg_color)
+    if scene == "main":
+        rect_play = pygame.Rect(350, 200, 100, 50)
+        rect_how = pygame.Rect(500, 200, 100, 50)
+        rect_shop = pygame.Rect(200, 200, 100, 50)
+        pygame.draw.rect(screen, (255, 255, 255), rect_play)
+        pygame.draw.rect(screen, (255, 255, 255), rect_how)
+        pygame.draw.rect(screen, (255, 255, 255), rect_shop)
+        make_text(375, 200, (0, 0, 0), "Play",30)
+        make_text(510, 205, (0, 0, 0), "How 2?",25)
+        make_text(215, 200, (0, 0, 0), "Shop", 30)
+
+    if scene == "shop":
+        rect_upg_multi_s = pygame.Rect(200, 200, 100, 50)
+        rect_upg_atk_spd = pygame.Rect(500, 200, 100, 50)
+        pygame.draw.rect(screen, (255, 255, 255), rect_upg_multi_s)
+        pygame.draw.rect(screen, (255, 255, 255), rect_upg_atk_spd)
+        make_text(205, 200, (0, 0, 0), "Multishot", 20)
+        make_text(205, 220, (0, 0, 0), f"{multi_cost}$ -> {floor(multi_cost ** 1.1)}$", 10)
+        make_text(205, 230, (0, 0, 0), f"{multi_bullet}$ -> {multi_bullet + 2}$", 10)
+        make_text(510, 205, (0, 0, 0), "How 2?", 25)
+
+        make_text(x+t_rad/12.5-2.5,y+t_rad/3,(0,0,0),ammo,30)
+        make_text(50,50,(255,255,255),lives,30)
 
     for enemy in enemys[:]:
+        # move
         enemy["x"] += enemy["edx"]
         enemy["y"] += enemy["edy"]
         enemy["t"] += 1
+
+        # off-screen cleanup
         if enemy["t"] >= 20:
             if (enemy["x"] < 0 or enemy["x"] > screenwidth or enemy["y"] < 0 or enemy["y"] > screenheight):
                 enemys.remove(enemy)
-    #DRAW
-    screen.fill(bgcolor)
+                continue
 
-    turrent_center = (x + width // 2, y + height // 2)
-    pygame.draw.circle(screen, (255, 255, 255), turrent_center, t_rad)
+            # draw
+        pygame.draw.circle(screen, (255, 0, 0),(int(enemy["x"]), int(enemy["y"])),e_rad)
 
-    turrent_rect = rotated_turrent.get_rect(center=turrent_center)
-    screen.blit(rotated_turrent, turrent_rect.topleft)
-
-
-
-    for bullet in bullets:
-        pygame.draw.circle(screen, (255, 255, 0),(int(bullet["x"]), int(bullet["y"])), ammo_rad)
-
-
-    for enemy in enemys:
-        pygame.draw.circle(screen, (255, 0, 0),(int(enemy["x"]), int(enemy["y"])), e_rad)
+            # player collision
         dx = enemy["x"] - turrent_center_x
         dy = enemy["y"] - turrent_center_y
         distance = (dx ** 2 + dy ** 2) ** 0.5
 
         if distance <= e_rad + t_rad:
-            if enemy in enemys:
-                enemys.remove(enemy)
-                lives -= 1
+            enemys.remove(enemy)
+            lives -= 1
+
+    if scene == "game":
+        turrent_center = (x + width // 2, y + height // 2)
+
+    # *---------draw sphere and turrent---------*
+    pygame.draw.circle(screen, (255, 255, 255), turrent_center, t_rad)
+    turrent_rect = rotated_turrent.get_rect(center=turrent_center)
+    screen.blit(rotated_turrent, turrent_rect.topleft)
+
     for bullet in bullets[:]:
-        for enemy in enemys[:]:
-            dx = bullet["x"] - enemy["x"]
-            dy = bullet["y"] - enemy["y"]
-            distance = (dx ** 2 + dy ** 2) ** 0.5
+        bullet["rect"] = pygame.Rect(int(bullet["x"]) - ammo_rad,int(bullet["y"]) - ammo_rad,ammo_rad * 2, ammo_rad * 2)
+        pygame.draw.circle(screen,(255, 255, 0), bullet["rect"].center,ammo_rad)
+        if scene == "main":
+            ammo = 100
+            if bullet["rect"].colliderect(rect_shop):
+                scene = "shop"
+                bullets.remove(bullet)
+                continue
 
-            if distance <= ammo_rad + e_rad:
-                # Collision detected: remove both
-                if bullet in bullets:
+            elif bullet["rect"].colliderect(rect_play):
+                scene = "game"
+                bullets.remove(bullet)
+                continue
+
+            elif bullet["rect"].colliderect(rect_how):
+                scene = "how"
+                bullets.remove(bullet)
+                continue
+
+            for enemy in enemys[:]:
+                enemys.remove(enemy)
+
+        if scene == "shop":
+            ammo = 100
+            if bullet["rect"].colliderect(rect_upg_multi_s):
+                if money >= multi_cost:
+                    multi_cost **= 1.1
+                    multi_bullet += 2
+                else:
+                    not_enough = True
+
+                bullets.remove(bullet)
+                continue
+                pygame.draw.circle(screen, (255, 255, 0), bullet_rect.center, ammo_rad)
+
+                # off screen
+                if not screen.get_rect().collidepoint(bullet["x"], bullet["y"]):
                     bullets.remove(bullet)
-                if enemy in enemys:
-                    enemys.remove(enemy)
+                    continue
 
-    ammo_text = pygame.font.SysFont("Comic Sans MS", 30).render(str(ammo), True, (0, 0, 0))
-    screen.blit(ammo_text, (x+t_rad/12.5 , y+t_rad/3))
-    screen.blit(pygame.font.SysFont("Comic Sans MS", 30).render(str(lives), True, (255, 255, 255)), (50, 50))
+                # enemy collision
+                if scene == "game":
+                    for enemy in enemys[:]:
+                        dx = bullet["x"] - enemy["x"]
+                        dy = bullet["y"] - enemy["y"]
+                        distance = (dx ** 2 + dy ** 2) ** 0.5
+
+                        if distance <= ammo_rad + e_rad:
+                            bullets.remove(bullet)
+                            enemys.remove(enemy)
+                            money += 1
+                            break
+
+        if scene == "game":
+            for enemy in enemys[:]:
+                dx = bullet["x"] - enemy["x"]
+                dy = bullet["y"] - enemy["y"]
+                distance = (dx ** 2 + dy ** 2) ** 0.5
+
+                if distance <= ammo_rad + e_rad:
+                    bullets.remove(bullet)
+                    enemys.remove(enemy)
+                    money += 1
+                    break
+
+
 
     pygame.display.update()
 
