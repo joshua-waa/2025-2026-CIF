@@ -55,7 +55,7 @@ lives = 3
 scene = "main"
 
 #shop
-money = 11110
+money = 0
 total_money = 0
 multi_cost = 100
 multi_bullet = 1
