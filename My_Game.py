@@ -59,8 +59,12 @@ money = 0
 total_money = 0
 multi_cost = 100
 multi_bullet = 1
+
 spd_cost = 50
 time_to_reload = 0.4
+
+pierce = 1
+pierce_cost = 75
 
 not_enough = 0
 maxed = 0
@@ -164,8 +168,9 @@ while playing:
                 reload_timer = 0
                 if scene == "game":
                     for i in range(multi_bullet):
-                        offset = (i - multi_bullet // 2) * spread  #####  I think sin and cos translates angle and spd to lik movement(dx,dy) or smth
-                        bullets.append({"x": turrent_center_x,"y": turrent_center_y,"dx": math.cos(angle + offset) * bullet_speed,"dy": -math.sin(angle + offset) * bullet_speed})
+                        for i in range(pierce):
+                            offset = (i - multi_bullet // 2) * spread  #####  I think sin and cos translates angle and spd to lik movement(dx,dy) or smth
+                            bullets.append({"x": turrent_center_x,"y": turrent_center_y,"dx": math.cos(angle + offset) * bullet_speed,"dy": -math.sin(angle + offset) * bullet_speed})
                 else:
                     offset = (1 - multi_bullet // 2) * spread
                     bullets.append({"x": turrent_center_x, "y": turrent_center_y, "dx": math.cos(angle) * bullet_speed,"dy": -math.sin(angle) * bullet_speed})
@@ -230,7 +235,7 @@ while playing:
         for enemy in enemys[:]:
             enemys.remove(enemy)
     if scene == "shop":
-
+        #multi shot
         rect_upg_multi_s = pygame.Rect(200, 200, 100, 50)
         pygame.draw.rect(screen, (255, 255, 255), rect_upg_multi_s)
         make_text(205, 200, (0, 0, 0), "Multishot", 20)
@@ -241,14 +246,26 @@ while playing:
         if multi_bullet >= 13:
             make_text(205, 220, (0, 0, 0), "Maxed", 20)
 
+        #atk speed
         rect_upg_atk_spd = pygame.Rect(500, 200, 100, 50)
         pygame.draw.rect(screen, (255, 255, 255), rect_upg_atk_spd)
-        make_text(505, 200, (0, 0, 0), "Atk Speed", 20)
+        make_text(505, 200, black, "Atk Speed", 20)
         if time_to_reload > 0.2:
             make_text(505, 220, (0, 0, 0), f"{spd_cost}$", 10)
             make_text(505, 230, (0, 0, 0), f"{time_to_reload} -> {floor(100 * time_to_reload-5)/100}", 10)
 
         if time_to_reload <= 0.2:
+            make_text(505, 220, black, "Maxed", 20)
+
+        #Pierce
+        rect_upg_pierce = pygame.Rect(500, 400, 100, 50)
+        pygame.draw.rect(screen, (255, 255, 255), rect_upg_pierce)
+        make_text(505, 500, black, "Pierce", 20)
+        if pierce < 5:
+            make_text(505, 220, (0, 0, 0), f"{spd_cost}$", 10)
+            make_text(505, 230, (0, 0, 0), f"{time_to_reload} -> {floor(100 * time_to_reload - 5) / 100}", 10)
+
+        if pierce >= 5 :
             make_text(505, 220, (0, 0, 0), "Maxed", 20)
 
         make_text(50,50,white, str(money) + "$", 30)
@@ -390,6 +407,21 @@ while playing:
                 scene = "main"
                 bullets.remove(bullet)
                 not_enough = 0
+                continue
+
+            elif bullet["rect"].colliderect(rect_upg_pierce):
+                if pierce < 5:
+                    if money >= pierce_cost:
+                        money -= pierce_cost
+                        pierce_cost = floor(pierce_cost + 50)
+                        pierce += 1
+                elif pierce >= 5:
+                    maxed = fps * 3
+                    
+                else:
+                    not_enough = fps * 3
+                bullets.remove(bullet)
+
                 continue
 
         if scene == "game" or "how":
