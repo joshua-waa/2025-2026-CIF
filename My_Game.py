@@ -64,7 +64,7 @@ spd_cost = 50
 time_to_reload = 0.4
 
 pierce = 1
-pierce_cost = 75
+pierce_cost = 150
 
 not_enough = 0
 maxed = 0
@@ -76,8 +76,8 @@ w = a = s = d = shoot = lives_money = enemy_h = 0
 
 rect_back = pygame.Rect(screenwidth/2 - 50, 500, 100, 50)
 while playing:
-    e_spawn_ps = 3 + total_money / 100
-    espeed= 1 + total_money / 100
+    e_spawn_ps = 3 + total_money / 200
+    espeed= 1 + total_money / 200
     clock.tick(fps)
 
     #MOVEMENT
@@ -167,8 +167,8 @@ while playing:
                 ammo -= 1
                 reload_timer = 0
                 if scene == "game":
-                    for i in range(multi_bullet):
-                        for i in range(pierce):
+                    for a in range(pierce):
+                        for i in range(multi_bullet):
                             offset = (i - multi_bullet // 2) * spread  #####  I think sin and cos translates angle and spd to lik movement(dx,dy) or smth
                             bullets.append({"x": turrent_center_x,"y": turrent_center_y,"dx": math.cos(angle + offset) * bullet_speed,"dy": -math.sin(angle + offset) * bullet_speed})
                 else:
