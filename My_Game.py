@@ -55,7 +55,7 @@ lives = 3
 scene = "main"
 
 #shop
-money = 0
+money = 11110
 total_money = 0
 multi_cost = 100
 multi_bullet = 1
@@ -260,13 +260,13 @@ while playing:
         #Pierce
         rect_upg_pierce = pygame.Rect(500, 400, 100, 50)
         pygame.draw.rect(screen, (255, 255, 255), rect_upg_pierce)
-        make_text(505, 500, black, "Pierce", 20)
+        make_text(505, 400, black, "Pierce", 20)
         if pierce < 5:
-            make_text(505, 220, (0, 0, 0), f"{spd_cost}$", 10)
-            make_text(505, 230, (0, 0, 0), f"{time_to_reload} -> {floor(100 * time_to_reload - 5) / 100}", 10)
+            make_text(505, 420, black, f"{pierce_cost}$", 10)
+            make_text(505, 430, black, f"{pierce} -> {pierce + 2}", 10)
 
         if pierce >= 5 :
-            make_text(505, 220, (0, 0, 0), "Maxed", 20)
+            make_text(505, 420, (0, 0, 0), "Maxed", 20)
 
         make_text(50,50,white, str(money) + "$", 30)
 
@@ -417,7 +417,7 @@ while playing:
                         pierce += 1
                 elif pierce >= 5:
                     maxed = fps * 3
-                    
+
                 else:
                     not_enough = fps * 3
                 bullets.remove(bullet)
