@@ -15,28 +15,35 @@ screenheight = 600
 screen = pygame.display.set_mode((screenwidth, screenheight))
 bg_color = (0, 0, 0)
 
-# Jet setup
+
+
 t_rad = 25
 width = t_rad
 height = t_rad * 3
 turrent_image = pygame.image.load("turrent.png").convert_alpha()
 turrent_image = pygame.transform.scale(turrent_image, (width, height))
 
+
 arrow_image = pygame.image.load("Arrow.png").convert_alpha()
 arrow_image = pygame.transform.scale(arrow_image, (90, 77))
 
+
 x, y = screenwidth/2, screenheight/2
 speed = 2
+
 
 clock = pygame.time.Clock()
 fps = 60
 playing = True
 
+
 move_up = move_down = move_left = move_right = False
+
 
 # Bullets
 bullets = []  # {"x","y","dx","dy"}
 enemys = []
+
 
 max_ammo = 10
 ammo = max_ammo
@@ -44,6 +51,11 @@ reload_timer = 0
 ammo_rad = 5
 bullet_speed = 8
 spread = 0.15
+mgun = False
+mgun_r = 0
+mgun_r_time = fps / 15
+
+flank = False
 
 espeed = 1  # how fast enemy moves
 e_spawn = 0
@@ -51,11 +63,14 @@ e_spawn_ps = 3 # how many spawn per second
 e_rad = 20
 distance = 0
 
+
+max_lives = 3
 lives = 3
 scene = "main"
 
+
 #shop
-money = 0
+money = 100000    ############################
 total_money = 0
 multi_cost = 100
 multi_bullet = 1
@@ -66,18 +81,30 @@ time_to_reload = 0.4
 pierce = 1
 pierce_cost = 150
 
+lives_cost = 100
+
+
 not_enough = 0
 maxed = 0
+
 
 white = (255,255,255)
 black = (0,0,0)
 
+
 w = a = s = d = shoot = lives_money = enemy_h = 0
 
+
 rect_back = pygame.Rect(screenwidth/2 - 50, 500, 100, 50)
+
+
 while playing:
     e_spawn_ps = 3 + total_money / 200
-    espeed= 1 + total_money / 200
+    if e_spawn_ps > 50:
+        e_spawn_ps = 50
+    espeed= 1 + total_money / 400
+    if espeed > 2.5:
+        espeed = 2.5
     clock.tick(fps)
 
     #MOVEMENT
@@ -155,7 +182,7 @@ while playing:
 
         #Mouse click shooting
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if ammo > 0:
+            if ammo > 0 and mgun == False:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
 
                 turrent_center_x = x + width // 2
@@ -171,10 +198,38 @@ while playing:
                         for i in range(multi_bullet):
                             offset = (i - multi_bullet // 2) * spread  #####  I think sin and cos translates angle and spd to lik movement(dx,dy) or smth
                             bullets.append({"x": turrent_center_x,"y": turrent_center_y,"dx": math.cos(angle + offset) * bullet_speed,"dy": -math.sin(angle + offset) * bullet_speed})
+                            if flank:
+                                bullets.append({"x": turrent_center_x, "y": turrent_center_y,"dx": -math.cos(angle + offset) * bullet_speed,"dy": math.sin(angle + offset) * bullet_speed})
                 else:
                     offset = (1 - multi_bullet // 2) * spread
                     bullets.append({"x": turrent_center_x, "y": turrent_center_y, "dx": math.cos(angle) * bullet_speed,"dy": -math.sin(angle) * bullet_speed})
                 shoot = 1
+
+    mouse_buttons = pygame.mouse.get_pressed()
+    mgun_r += 1
+    if mouse_buttons[0] and mgun and mgun_r > mgun_r_time:
+        mgun_r = 0
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        turrent_center_x = x + width // 2
+        turrent_center_y = y + height // 2
+
+        dx = mouse_x - turrent_center_x
+        dy = mouse_y - turrent_center_y
+        angle = math.atan2(-dy, dx)
+        ammo -= 1
+        reload_timer = 0
+        if scene == "game":
+            for a in range(pierce):
+                for i in range(multi_bullet):
+                    offset = (i - multi_bullet // 2) * spread  #####  I think sin and cos translates angle and spd to lik movement(dx,dy) or smth
+                    bullets.append({"x": turrent_center_x, "y": turrent_center_y, "dx": math.cos(angle + offset) * bullet_speed,"dy": -math.sin(angle + offset) * bullet_speed})
+                    if flank:
+                        bullets.append({"x": turrent_center_x, "y": turrent_center_y,"dx": -math.cos(angle + offset) * bullet_speed,"dy": math.sin(angle + offset) * bullet_speed})
+        else:
+            offset = (1 - multi_bullet // 2) * spread
+            bullets.append({"x": turrent_center_x, "y": turrent_center_y, "dx": math.cos(angle) * bullet_speed,"dy": -math.sin(angle) * bullet_speed})
+        shoot = 1
 
     #enemy spawn
     if scene == "game":
@@ -187,7 +242,7 @@ while playing:
         for bullet in bullets[:]:
             bullets.remove(bullet)
         scene = "main"
-        lives = 3
+        lives = max_lives
 
     #RELOAD
     reload_timer += 1
@@ -203,7 +258,7 @@ while playing:
     angle = math.degrees(math.atan2(-dy, dx))
 
     rotated_turrent = pygame.transform.rotate(turrent_image, angle-90)
-    turrent_cir = pygame.draw.circle(screen, (255, 255, 255), turrent_center, t_rad)
+    turrent_cir = pygame.draw.circle(screen, white, turrent_center, t_rad)
 
     #BULLETs
 
@@ -214,10 +269,10 @@ while playing:
     screen.fill(bg_color)
 
     if not_enough > 0:
-        make_text(200, 50,(255, 255, 255), "Not Enough Money!", 50)
+        make_text(200, 50,white, "Not Enough Money!", 50)
         not_enough -= 1
     if maxed > 0:
-        make_text(screenwidth / 2 - 75, 50,(255, 255, 255), "Maxed!", 50)
+        make_text(screenwidth / 2 - 75, 50,white, "Sold!", 50)
         maxed -= 1
 
 
@@ -225,48 +280,70 @@ while playing:
         rect_play = pygame.Rect(350, 200, 100, 50)
         rect_how = pygame.Rect(500, 200, 100, 50)
         rect_shop = pygame.Rect(200, 200, 100, 50)
-        pygame.draw.rect(screen, (255, 255, 255), rect_play)
-        pygame.draw.rect(screen, (255, 255, 255), rect_how)
-        pygame.draw.rect(screen, (255, 255, 255), rect_shop)
-        make_text(375, 200, (0, 0, 0), "Play",30)
-        make_text(510, 205, (0, 0, 0), "How 2?",25)
-        make_text(215, 200, (0, 0, 0), "Shop", 30)
+        pygame.draw.rect(screen, white, rect_play)
+        pygame.draw.rect(screen, white, rect_how)
+        pygame.draw.rect(screen, white, rect_shop)
+        make_text(375, 200, black, "Play",30)
+        make_text(510, 205, black, "How 2?",25)
+        make_text(215, 200, black, "Shop", 30)
 
         for enemy in enemys[:]:
             enemys.remove(enemy)
     if scene == "shop":
         #multi shot
-        rect_upg_multi_s = pygame.Rect(200, 200, 100, 50)
-        pygame.draw.rect(screen, (255, 255, 255), rect_upg_multi_s)
-        make_text(205, 200, (0, 0, 0), "Multishot", 20)
-        if multi_bullet <= 12:
-            make_text(205, 220, (0, 0, 0), f"{multi_cost}$", 10)
-            make_text(205, 230, (0, 0, 0), f"{multi_bullet} -> {multi_bullet + 2}", 10)
+        rect_upg_multi_s = pygame.Rect(200, 150, 100, 50)
+        pygame.draw.rect(screen, white, rect_upg_multi_s)
+        make_text(205, 150, black, "Multishot", 20)
+        if multi_bullet < 13:
+            make_text(205, 170, black, f"{multi_cost}$", 10)
+            make_text(205, 180, black, f"{multi_bullet} -> {multi_bullet + 2}", 10)
 
-        if multi_bullet >= 13:
-            make_text(205, 220, (0, 0, 0), "Maxed", 20)
+        if multi_bullet == 13 and not flank:
+            multi_cost = 2000
+            make_text(205, 170, black, "???", 10)
+            make_text(205, 180, black, f"{multi_cost}", 10)
+
+        if multi_bullet > 13 or flank:
+            make_text(205, 170, black, "Sold", 20)
 
         #atk speed
-        rect_upg_atk_spd = pygame.Rect(500, 200, 100, 50)
-        pygame.draw.rect(screen, (255, 255, 255), rect_upg_atk_spd)
-        make_text(505, 200, black, "Atk Speed", 20)
+        rect_upg_atk_spd = pygame.Rect(500, 150, 100, 50)
+        pygame.draw.rect(screen, white, rect_upg_atk_spd)
+        make_text(505, 150, black, "Atk Speed", 20)
         if time_to_reload > 0.2:
-            make_text(505, 220, (0, 0, 0), f"{spd_cost}$", 10)
-            make_text(505, 230, (0, 0, 0), f"{time_to_reload} -> {floor(100 * time_to_reload-5)/100}", 10)
+            make_text(505, 170, black, f"{spd_cost}$", 10)
+            make_text(505, 180, black, f"{time_to_reload} -> {floor(100 * time_to_reload-5)/100}", 10)
 
-        if time_to_reload <= 0.2:
-            make_text(505, 220, black, "Maxed", 20)
+        if floor(time_to_reload * 100) / 100  == 0.2:
+            spd_cost = 2000
+            make_text(505, 170, black, "???", 10)
+            make_text(505, 180, black, f"{spd_cost}$", 10)
+
+
+        if time_to_reload < 0.19 and spd_cost == 2000:
+            make_text(505, 170, black, "Sold", 20)
 
         #Pierce
-        rect_upg_pierce = pygame.Rect(500, 400, 100, 50)
-        pygame.draw.rect(screen, (255, 255, 255), rect_upg_pierce)
-        make_text(505, 400, black, "Pierce", 20)
+        rect_upg_pierce = pygame.Rect(500, 350, 100, 50)
+        pygame.draw.rect(screen, white, rect_upg_pierce)
+        make_text(505, 350, black, "Pierce", 20)
         if pierce < 5:
-            make_text(505, 420, black, f"{pierce_cost}$", 10)
-            make_text(505, 430, black, f"{pierce} -> {pierce + 2}", 10)
+            make_text(505, 370, black, f"{pierce_cost}$", 10)
+            make_text(505, 380, black, f"{pierce} -> {pierce + 2}", 10)
 
-        if pierce >= 5 :
-            make_text(505, 420, (0, 0, 0), "Maxed", 20)
+        elif pierce >= 5 :
+            make_text(505, 370, black, "Sold", 20)
+
+        # lives
+        rect_upg_lives = pygame.Rect(200, 350, 100, 50)
+        pygame.draw.rect(screen, white, rect_upg_lives)
+        make_text(205, 350, black, "Lives", 20)
+        if max_lives < 8:
+            make_text(205, 370, black, f"{lives_cost}$", 10)
+            make_text(205, 380, black, f"{max_lives} -> {max_lives + 1}", 10)
+
+        if max_lives >= 8:
+            make_text(205, 370, black, "Sold", 20)
 
         make_text(50,50,white, str(money) + "$", 30)
 
@@ -354,6 +431,7 @@ while playing:
             elif bullet["rect"].colliderect(rect_play):
                 scene = "game"
                 ammo = max_ammo
+                lives = max_lives
                 reload_timer = 0
                 bullets.remove(bullet)
                 continue
@@ -369,32 +447,39 @@ while playing:
                 scene = "how"
                 bullets.remove(bullet)
                 continue
-
         if scene == "shop":
             if bullet["rect"].colliderect(rect_upg_multi_s):
-                if multi_bullet < 13:
-                   if money >= multi_cost:
+                if money >= multi_cost and not flank:
+                    if multi_bullet < 13:
                         money -= multi_cost
                         multi_cost = floor(multi_cost ** 1.1)
                         multi_bullet += 2
+                    elif multi_bullet == 13:
+                        flank = True
 
-                elif multi_bullet >= 13:
+                elif multi_bullet > 13 or flank:
                     maxed = fps * 3
 
                 else:
                     not_enough = fps * 3
 
+
                 bullets.remove(bullet)
                 continue
-
             elif bullet["rect"].colliderect(rect_upg_atk_spd):
-                if time_to_reload> 0.2:
-                    if money >= spd_cost:
+                if money >= spd_cost and time_to_reload != 0.01:
+                    if time_to_reload > 0.2:
                         money -= spd_cost
                         spd_cost = floor(spd_cost ** 1.3)
                         time_to_reload = (floor((time_to_reload-0.05) * 100))/100
 
-                elif time_to_reload <= 0.2:
+                    elif floor(time_to_reload * 100) / 100 == 0.2:
+                        mgun = True
+                        spread = 0.025
+                        money -= spd_cost
+                        time_to_reload = 0.01
+
+                elif time_to_reload < 0.2:
                     maxed = fps * 3
 
                 else:
@@ -402,28 +487,38 @@ while playing:
 
                 bullets.remove(bullet)
                 continue
-
-            elif bullet["rect"].colliderect(rect_back):
-                scene = "main"
-                bullets.remove(bullet)
-                not_enough = 0
-                continue
-
             elif bullet["rect"].colliderect(rect_upg_pierce):
-                if pierce < 5:
-                    if money >= pierce_cost:
+                if money >= pierce_cost:
+                    if pierce < 5:
                         money -= pierce_cost
                         pierce_cost = floor(pierce_cost + 50)
                         pierce += 1
                 elif pierce >= 5:
                     maxed = fps * 3
+                else:
+                    not_enough = fps * 3
+                bullets.remove(bullet)
+                continue
+            elif bullet["rect"].colliderect(rect_upg_lives):
+                if money >= lives_cost:
+                    if max_lives < 8:
+                        money -= lives_cost
+                        lives_cost = floor(lives_cost * 2)
+                        max_lives += 1
+
+                elif max_lives >= 8:
+                    maxed = fps * 3
 
                 else:
                     not_enough = fps * 3
                 bullets.remove(bullet)
 
                 continue
-
+            elif bullet["rect"].colliderect(rect_back):
+                scene = "main"
+                bullets.remove(bullet)
+                not_enough = 0
+                continue
         if scene == "game" or "how":
             for enemy in enemys[:]:
                 dx = bullet["x"] - enemy["x"]
@@ -437,26 +532,23 @@ while playing:
                     total_money += 1
                     enemy_h = 2
                     break
-
         if scene == "how":
             if bullet["rect"].colliderect(rect_back):
                 if enemy_h == 0:
                     make_enemy(False)
                     enemy_h = 1
-                    bullets.remove(bullet)
-                    continue
 
                 if enemy_h == 2:
                     scene = "main"
-                    bullets.remove(bullet)
-                    continue
+
+                bullets.remove(bullet)
+                continue
 
 
-    pygame.draw.circle(screen, (255, 255, 255), turrent_center, t_rad)
+    pygame.draw.circle(screen, white, turrent_center, t_rad)
     turrent_rect = rotated_turrent.get_rect(center=turrent_center)
     screen.blit(rotated_turrent, turrent_rect.topleft)
     make_text(x+t_rad/12.5-2.5,y+t_rad/3,black, ammo,30)
 
     pygame.display.update()
-
 pygame.quit()
