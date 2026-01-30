@@ -50,12 +50,13 @@ ammo = max_ammo
 reload_timer = 0
 ammo_rad = 5
 bullet_speed = 8
-spread = 0.15
+mspread = 0.15
 mgun = False
 mgun_r = 0
 mgun_r_time = fps / 15
 
 flank = False
+flankspread = 0
 
 espeed = 1  # how fast enemy moves
 e_spawn = 0
@@ -71,7 +72,7 @@ scene = "main"
 
 #shop
 money = 100000    ############################
-total_money = 0
+total_money = money
 multi_cost = 100
 multi_bullet = 1
 
@@ -99,12 +100,12 @@ rect_back = pygame.Rect(screenwidth/2 - 50, 500, 100, 50)
 
 
 while playing:
-    e_spawn_ps = 3 + total_money / 200
-    if e_spawn_ps > 50:
-        e_spawn_ps = 50
-    espeed= 1 + total_money / 400
+    e_spawn_ps = 3 + total_money / 100
+    if e_spawn_ps > 100:
+        e_spawn_ps = 100
+    espeed= 1 + total_money / 350
     if espeed > 2.5:
-        espeed = 2.5
+        espeed = 4
     clock.tick(fps)
 
     #MOVEMENT
@@ -145,7 +146,6 @@ while playing:
             enemys.append({"x": ex, "y": ey,"edx": edx, "edy": edy ,"t":0 })
         else:
             enemys.append({"x": 600, "y": screenheight/2, "edx": 0, "edy": 0, "t": 0})
-
     def make_text(tx,ty,color,yap,size):
         font = pygame.font.SysFont("Comic Sans MS", size)
         text_surface = font.render(str(yap), True, color)
@@ -193,18 +193,23 @@ while playing:
                 angle = math.atan2(-dy, dx)
                 ammo -= 1
                 reload_timer = 0
+                spread = mspread
                 if scene == "game":
                     for a in range(pierce):
                         for i in range(multi_bullet):
                             offset = (i - multi_bullet // 2) * spread  #####  I think sin and cos translates angle and spd to lik movement(dx,dy) or smth
                             bullets.append({"x": turrent_center_x,"y": turrent_center_y,"dx": math.cos(angle + offset) * bullet_speed,"dy": -math.sin(angle + offset) * bullet_speed})
                             if flank:
-                                bullets.append({"x": turrent_center_x, "y": turrent_center_y,"dx": -math.cos(angle + offset) * bullet_speed,"dy": math.sin(angle + offset) * bullet_speed})
+                                fspread = spread / 2
+                                flankspread += 1
+                                if flankspread >= 2:
+                                    flankspread = 0
+                                    offset = (i - multi_bullet // 2) * fspread  #####  I think sin and cos translates angle and spd to lik movement(dx,dy) or smth
+                                    bullets.append({"x": turrent_center_x, "y": turrent_center_y,"dx": -math.cos(angle + offset) * bullet_speed,"dy": math.sin(angle + offset) * bullet_speed})
                 else:
                     offset = (1 - multi_bullet // 2) * spread
                     bullets.append({"x": turrent_center_x, "y": turrent_center_y, "dx": math.cos(angle) * bullet_speed,"dy": -math.sin(angle) * bullet_speed})
                 shoot = 1
-
     mouse_buttons = pygame.mouse.get_pressed()
     mgun_r += 1
     if mouse_buttons[0] and mgun and mgun_r > mgun_r_time:
@@ -219,14 +224,21 @@ while playing:
         angle = math.atan2(-dy, dx)
         ammo -= 1
         reload_timer = 0
+        spread = mspread
         if scene == "game":
             for a in range(pierce):
                 for i in range(multi_bullet):
                     offset = (i - multi_bullet // 2) * spread  #####  I think sin and cos translates angle and spd to lik movement(dx,dy) or smth
                     bullets.append({"x": turrent_center_x, "y": turrent_center_y, "dx": math.cos(angle + offset) * bullet_speed,"dy": -math.sin(angle + offset) * bullet_speed})
                     if flank:
-                        bullets.append({"x": turrent_center_x, "y": turrent_center_y,"dx": -math.cos(angle + offset) * bullet_speed,"dy": math.sin(angle + offset) * bullet_speed})
+                        fspread = spread / 2
+                        flankspread += 1
+                        if flankspread >= 2:
+                            flankspread = 0
+                            offset = (i - multi_bullet // 2) * fspread
+                            bullets.append({"x": turrent_center_x, "y": turrent_center_y,"dx": -math.cos(angle + offset) * bullet_speed,"dy": math.sin(angle + offset) * bullet_speed})
         else:
+
             offset = (1 - multi_bullet // 2) * spread
             bullets.append({"x": turrent_center_x, "y": turrent_center_y, "dx": math.cos(angle) * bullet_speed,"dy": -math.sin(angle) * bullet_speed})
         shoot = 1
@@ -475,7 +487,7 @@ while playing:
 
                     elif floor(time_to_reload * 100) / 100 == 0.2:
                         mgun = True
-                        spread = 0.025
+                        mspread = 0.1
                         money -= spd_cost
                         time_to_reload = 0.01
 
@@ -519,7 +531,7 @@ while playing:
                 bullets.remove(bullet)
                 not_enough = 0
                 continue
-        if scene == "game" or "how":
+        if scene == "game" or scene == "how":
             for enemy in enemys[:]:
                 dx = bullet["x"] - enemy["x"]
                 dy = bullet["y"] - enemy["y"]
