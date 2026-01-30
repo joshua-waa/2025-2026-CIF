@@ -71,7 +71,7 @@ scene = "main"
 
 
 #shop
-money = 100000    ############################
+money = 0    ############################
 total_money = money
 multi_cost = 100
 multi_bullet = 1
