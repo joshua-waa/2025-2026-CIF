@@ -32,6 +32,7 @@ def make_cir():
     new_moving = {"x": x, "y": y, "size": 80, "color":[255,0,0], "color_change": 0, "d?":0}
     moving.append(new_moving)
     non_moving.append({"x": x, "y": y, "moving_ref": new_moving, "size": 40})
+nt = 10
 ns = 35 #Try to get 1:2  ns:ms
 ms = 70
 
@@ -69,9 +70,9 @@ while True:
                 mx, my = pygame.mouse.get_pos()
                 for cir in non_moving[:]:
                     distance_sq = (mx - cir["x"]) ** 2 + (my - cir["y"]) ** 2
-                    if distance_sq < (ms - ns) ** 2:
+                    if distance_sq + nt/2  < (ms - ns) ** 2:
                         moving_cir = cir["moving_ref"]
-                        if ns - 5 <= moving_cir["size"] <= ns + 5:
+                        if ns - nt/2 <= moving_cir["size"] <= ns + nt/2:
                             score += 1
                             moving_cir["d?"] = 1
                             non_moving.remove(cir)
@@ -88,7 +89,7 @@ while True:
         #spawning
 
         for cir in non_moving[:]:
-            pygame.draw.circle(screen, (255, 255, 255), (cir["x"], cir["y"]), int(cir["size"]), 5)
+            pygame.draw.circle(screen, (255, 255, 255), (cir["x"], cir["y"]), int(cir["size"]), nt)
         for cir in moving[:]:
             if cir["d?"] == 1:
                 moving.remove(cir)
