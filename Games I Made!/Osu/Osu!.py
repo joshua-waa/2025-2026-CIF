@@ -37,17 +37,14 @@ ns = 35 #Try to get 1:2  ns:ms
 ms = 70
 
 spawn_time = 0.5 ######
-cir_ps = FPS * spawn_time # spawn per .. s
+cir_ps = FPS * spawn_time # spawn per . . s
 timer = 0
 
 s_to_go_green = 0.75 #############
-speed = s_to_go_green * FPS  ### ..s to go to green
+speed = s_to_go_green * FPS  ### . .s to go to green
 clicked = False
 
 mx = my = 0
-
-lives = 1
-
 
 while True:
     if score > hi_score:
@@ -67,12 +64,13 @@ while True:
                     non_moving.clear()
                     continue
             elif scene == "game":
-                mx, my = pygame.mouse.get_pos()
+                mx, my = event.pos
                 for cir in non_moving[:]:
                     distance_sq = (mx - cir["x"]) ** 2 + (my - cir["y"]) ** 2
-                    if distance_sq + nt/2  < (ms - ns) ** 2:
+                    hit_radius = cir["size"]
+                    if distance_sq <= hit_radius ** 2:
                         moving_cir = cir["moving_ref"]
-                        if ns - nt/2 <= moving_cir["size"] <= ns + nt/2:
+                        if ns - nt/2-2 <= moving_cir["size"] <= ns + nt/2+2:
                             score += 1
                             moving_cir["d?"] = 1
                             non_moving.remove(cir)
@@ -89,14 +87,17 @@ while True:
         #spawning
 
         for cir in non_moving[:]:
-            pygame.draw.circle(screen, (255, 255, 255), (cir["x"], cir["y"]), int(cir["size"]), nt)
+            if cir["moving_ref"]["size"] < 5:
+                non_moving.remove(cir)
+            else:
+                pygame.draw.circle(screen, (255, 255, 255), (cir["x"], cir["y"]), int(cir["size"]), nt)
         for cir in moving[:]:
             if cir["d?"] == 1:
                 moving.remove(cir)
             else:
                     cir["size"] -= (ms - ns) / speed
                     if cir["size"] <= 0:
-                        lives -= 1
+                        score-=2
                     if cir["color_change"] == 0:
                         cir["color"][0] = max(0, cir["color"][0] - 255 / speed)
                         cir["color"][1] = min(255, cir["color"][1] + 255 / speed)
@@ -108,10 +109,9 @@ while True:
                     pygame.draw.circle(screen, cir["color"], (cir["x"], cir["y"]), int(cir["size"]), 3)
 
         if not clicked:
-            lives -= 1
-        if lives <= 0:
+            score -= 2
+        if score <= 0:
             scene = "title"
             timer = 0
             score = 0
-            lives = 1
     pygame.display.update()
