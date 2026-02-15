@@ -2,7 +2,7 @@ import pygame
 from pygame import MOUSEBUTTONDOWN
 import random
 pygame.init()
-
+pygame.mixer.init()
 # screen size
 screenwidth = 500
 screenheight = 800
@@ -14,6 +14,8 @@ def make_text(tx, ty, color, yap, size):
     text_surface = fonts.render(str(yap), True, color)
     screen.blit(text_surface, (tx, ty))
 
+audio_file = "SpotiDown.App - Sugar - Maroon 5.mp3"
+pygame.mixer.music.load(audio_file)
 scene = "title"
 FPS = 30
 
@@ -36,7 +38,7 @@ nt = 10
 ns = 35 #Try to get 1:2  ns:ms
 ms = 70
 
-spawn_time = 0.5 ######
+spawn_time = 0.499 ######
 cir_ps = FPS * spawn_time # spawn per . . s
 timer = 0
 
@@ -46,6 +48,7 @@ clicked = False
 
 mx = my = 0
 
+t_from_start = 0
 while True:
     if score > hi_score:
         hi_score = score
@@ -62,6 +65,9 @@ while True:
                     clicked = True
                     moving.clear()
                     non_moving.clear()
+                    pygame.time.delay(500)
+                    pygame.mixer.music.play(-1)
+
                     continue
             elif scene == "game":
                 mx, my = event.pos
@@ -74,12 +80,14 @@ while True:
                             score += 1
                             moving_cir["d?"] = 1
                             non_moving.remove(cir)
+                            break
 
     if scene == "title":
         pygame.draw.rect(screen,(255,255,255),start)
         make_text(screenwidth / 2 - 45, screenheight / 2 -5 , (0, 0, 0), "Osu!", 45)
         make_text(screenwidth / 2 - 20 , screenheight / 2 - 100, (255,255,255), hi_score, 45)
     if scene == "game":
+        print(score)
         timer += 1
         if timer > cir_ps:
             make_cir()
@@ -98,6 +106,7 @@ while True:
                     cir["size"] -= (ms - ns) / speed
                     if cir["size"] <= 0:
                         score-=2
+                        moving.remove(cir)
                     if cir["color_change"] == 0:
                         cir["color"][0] = max(0, cir["color"][0] - 255 / speed)
                         cir["color"][1] = min(255, cir["color"][1] + 255 / speed)
@@ -109,9 +118,13 @@ while True:
                     pygame.draw.circle(screen, cir["color"], (cir["x"], cir["y"]), int(cir["size"]), 3)
 
         if not clicked:
-            score -= 2
-        if score <= 0:
+            score -= 1
+
+        t_from_start += 0.001 / FPS
+        if t_from_start > 234:
+            pygame.time.delay(1000)
             scene = "title"
             timer = 0
             score = 0
+            pygame.mixer.music.stop()
     pygame.display.update()
